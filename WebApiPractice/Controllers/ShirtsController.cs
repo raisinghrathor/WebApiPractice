@@ -1,7 +1,9 @@
 ﻿ using System.ComponentModel;
 using Microsoft.AspNetCore.Mvc;
+using WebApiPractice.Attributes;
 using WebApiPractice.Data;
 using WebApiPractice.Filters.ActionFilters;
+using WebApiPractice.Filters.AuthFilter;
 using WebApiPractice.Filters.ExceptionFilter;
 using WebApiPractice.Models;
 using WebApiPractice.Models.Repositories;
@@ -10,6 +12,7 @@ namespace WebApiPractice.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
+    [JwtTokenAuthFilterAttribute]
     public class ShirtsController : ControllerBase
     {
         private readonly ApplicationDbContext dbContext;
@@ -21,6 +24,7 @@ namespace WebApiPractice.Controllers
 
         [HttpGet]
         //[Route("/shirts")]
+        [RequiredClaim("read","true")]
         public IActionResult GetShirts()
         {
             return Ok(dbContext.Shirts.ToList());
@@ -29,6 +33,7 @@ namespace WebApiPractice.Controllers
         [HttpGet("{id}")]
         // [Route("/shirts/{id}")]
         [TypeFilter(typeof(Shirt_ValidateShirtIdFilterAttribute))]
+        [RequiredClaim("read", "true")]
         public IActionResult GetShirtById(int id)
         {
             //if (id <= 0)
@@ -46,6 +51,7 @@ namespace WebApiPractice.Controllers
         [HttpPost]
         //[Route("/shirts")]
         [TypeFilter(typeof(Shirt_ValidateCreateShirtFilter))]
+        [RequiredClaim("write", "true")]
         public IActionResult CreateShirt([FromBody] Shirt shirt)
         {
            
@@ -59,6 +65,7 @@ namespace WebApiPractice.Controllers
         [TypeFilter(typeof(Shirt_ValidateShirtIdFilterAttribute))]
         [Shirt_ValidateUpdateShirtFilter]
         [TypeFilter(typeof(Shirt_HandleShirtUpdateExceptionFilter))]
+        [RequiredClaim("write", "true")]
         public IActionResult UpdateShirt(int id,Shirt shirt)
         {
            var ExistingShirt = HttpContext.Items["shirt"] as Shirt;
@@ -76,6 +83,7 @@ namespace WebApiPractice.Controllers
         [HttpDelete("{id}")]
         //[Route("/shirts/{id}")]
         [TypeFilter(typeof(Shirt_ValidateShirtIdFilterAttribute))]
+        [RequiredClaim("delete", "true")]
         public IActionResult DeleteShirt(int id)
         {
             var shirtToDelete = HttpContext.Items["shirt"] as Shirt;

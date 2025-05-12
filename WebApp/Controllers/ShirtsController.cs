@@ -15,11 +15,11 @@ namespace WebApp.Controllers
         }
         public async Task<IActionResult> Index()
         {
-            
+
 
             return View(await apiExecuter.InvokeGet<List<Shirt>>("Shirts"));
         }
-        public IActionResult CreateShirt( ) 
+        public IActionResult CreateShirt()
         {
             return View();
         }
@@ -63,13 +63,13 @@ namespace WebApp.Controllers
                 HandleWebApiException(ex);
                 return View();
             }
-            
+
             return NotFound();
         }
         [HttpPost]
         public async Task<IActionResult> UpdateShirt(Shirt shirt)
         {
-            if (ModelState.IsValid) 
+            if (ModelState.IsValid)
             {
                 try
                 {
@@ -79,12 +79,12 @@ namespace WebApp.Controllers
                 catch (WebApiException ex)
                 {
 
-                   HandleWebApiException (ex);
+                    HandleWebApiException(ex);
                 }
-                
+
             }
-           
-            
+
+
             return View(shirt);
         }
         public async Task<IActionResult> DeleteShirt(int shirtId)
@@ -100,9 +100,9 @@ namespace WebApp.Controllers
 
                 return View(nameof(Index), await apiExecuter.InvokeGet<List<Shirt>>("Shirts"));
             }
-           
+
         }
-        private void HandleWebApiException(WebApiException ex) 
+        private void HandleWebApiException(WebApiException ex)
         {
             if (ex.Response != null &&
                           ex.Response.Errors != null &&
@@ -113,6 +113,14 @@ namespace WebApp.Controllers
                     ModelState.AddModelError(error.Key, string.Join("; ", error.Value));
                 }
 
+            }
+            else if (ex.Response != null)
+            {
+                ModelState.AddModelError("Error", ex.Response.Title);
+            }
+            else
+            {
+                ModelState.AddModelError("Error", ex.Message);
             }
         }
     }

@@ -9,7 +9,7 @@ using WebApiPractice.Authority;
 
 namespace WebApiPractice.Controllers
 {
-    [Route("api/[controller]")]
+   
     [ApiController]
     public class AuthorityController : ControllerBase
     {
@@ -19,17 +19,17 @@ namespace WebApiPractice.Controllers
         {
             this.configuration = configuration;
         }
-        [HttpPost]
+        [HttpPost("auth")]
         
         public IActionResult Authenticate([FromBody] AppCredential appCredential)
         {
-            if (AppRepository.Authenticate(appCredential.ClientId, appCredential.Secret))
+            if (Authenticator.Authenticate(appCredential.ClientId, appCredential.Secret))
             {
                 var expiresAt = DateTime.UtcNow.AddMinutes(10);
-                return Ok(new
+                return Ok(new 
                 {
                    
-                    access_token = CreateToken(appCredential.ClientId, expiresAt),
+                    access_token = Authenticator.CreateToken(appCredential.ClientId, expiresAt,configuration.GetValue<string>("SecretKey")),
                     expires_at = expiresAt
 
 
@@ -47,33 +47,7 @@ namespace WebApiPractice.Controllers
                
         }
 
-        private string CreateToken(string clientId, DateTime expiresAt)
-        {
-            //Algo
-            //Payload
-            //Signing Key
-            var secretKey = Encoding.ASCII.GetBytes(configuration.GetValue<string>("SecretKey"));
-            var app = AppRepository.GetApplicationByClientId(clientId);
-            var claims = new List<Claim>
-            {
-                new Claim("AppName", app?.ApplicationName??string.Empty),
-                new Claim("Read",(app?.Scopes??string.Empty).Contains("read")?"true":"false"),
-                new Claim("Write",(app?.Scopes??string.Empty).Contains("write")?"true":"false"),
-                new Claim("Delete",(app?.Scopes??string.Empty).Contains("delete")?"true":"false")
-            };
-
-            var jwt = new JwtSecurityToken(
-                signingCredentials: new SigningCredentials(
-                     new SymmetricSecurityKey(secretKey),
-                     SecurityAlgorithms.HmacSha256Signature
-                    ),
-                claims:claims,
-                expires: expiresAt,
-                notBefore:DateTime.UtcNow
-                );
-
-                    return new JwtSecurityTokenHandler().WriteToken(jwt);
-        }
+       
     }
 
    
